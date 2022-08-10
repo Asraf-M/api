@@ -1,0 +1,739 @@
+<html>
+
+<head>
+    <!--------------------------->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+</head>
+
+
+
+
+
+
+
+
+<body onload="checkthelastButton()">
+
+
+
+    <div id="start">
+        <script>
+            var val = sessionStorage.getItem("PressedButton");
+            if (val) {
+                document.write(val);
+            }       
+        </script>
+    </div>
+
+
+    <div id="save">
+        <h2>Add User :</h2>
+        <form id="create-form">
+
+            Name:<br>
+
+            <input type="text" name="name" id="name" required><br>
+
+            state:<br>
+
+            <input type="text" name="state" id="state" required>
+
+            <br>
+
+            country:<br>
+
+            <input type="text" name="country" id="country" required>
+
+            <br>
+            <br>
+
+            <input type="submit" id="submit" value="submit" onclick="saveButton()">
+
+        </form>
+
+        <br />
+        <a href="index.html" onclick="saveButton()"> View Employee </a>
+        <br />
+
+
+
+        <script>
+
+            /*************  **********/
+
+            $("#create-form").submit(function (event) {
+
+                event.preventDefault();
+                var $form = $(this);
+
+                var url = 'http://localhost:8080/api123/AllCrud';
+                var name = $form.find('input[name="name"]').val();
+                var state = $form.find('input[name="state"]').val();
+                var country = $form.find('input[name="country"]').val();
+
+                $.ajax({
+
+                    type: 'POST',
+                    url: url,
+                    contentType: 'application/json',
+                    data: JSON.stringify({ name: name, state: state, country: country }),
+                    success: function (data) {
+                        //$('#result1').html(data);
+                        sessionStorage.setItem("PressedButton", data);
+                        window.location.replace("http://localhost:8080/api123/index.html");
+
+
+                        //alert("Record saved sucessfully");
+                    },
+                    error: function (xhr, status, error) {
+                        $('#msg1').html('<span style=\'color:red;\'>' + error + '</span>')
+                    }
+                });
+            });
+
+
+
+        </script>
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+    <div id="view">
+
+        <br />
+        <br />
+
+
+        <a href="index.html" onclick="viewButton()"> Add Employee </a>
+        <br />
+
+
+        <h2>Employees List : </h2>
+        <div>
+            <table border="1" width="100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th> Name</th>
+                        <th>State</th>
+                        <th>Country</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+
+                    </tr>
+                </thead>
+                <tbody id="viewdata">
+
+                </tbody>
+            </table>
+        </div>
+
+
+
+
+
+        <script>
+
+
+            fetch("http://localhost:8080/api123/AllCrud").then(
+                res => {
+                    res.json().then(
+                        data => {
+                            console.log(data);
+
+                            //below code for view servlet script   <VIEW USER>
+                            if (data.length > 0) {
+
+                                var temp = "";
+                                data.forEach((itemnewData) => {
+
+                                    temp += "<tr>";
+                                    temp += "<td>" + itemnewData.id + "</td>";
+                                    temp += "<td>" + itemnewData.name + "</td>";
+                                    temp += "<td>" + itemnewData.state + "</td>";
+                                    temp += "<td>" + itemnewData.country + "</td>";
+                                    temp += "<td>" + '<button id=' + itemnewData.id + ' name=' + itemnewData.name + ' value=' + itemnewData.id + '  onClick="myupdateFunction(this.id)">update</button>' + "</td>";
+                                    temp += "<td>" + '<button id=' + itemnewData.id + ' name=' + itemnewData.name + ' value=' + itemnewData.id + '  onClick="mydeleteFunction(this.id)">delete</button>' + "</td>";
+
+                                });
+                                document.getElementById('viewdata').innerHTML = temp;
+                            }
+
+                        }
+                    )
+                }
+            );
+
+
+
+
+            function mydeleteFunction(id) {
+
+                //var id = document.getElementById("mydeleteid").value;
+                console.log(id);
+
+                event.preventDefault();
+                $.ajax({
+
+
+                    type: 'DELETE',
+                    url: 'http://localhost:8080/api123/AllCrud',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: id }),
+                    success: function (data, status, xhr) {
+                        sessionStorage.setItem("PressedButton", data);
+                        window.location.replace("http://localhost:8080/api123/index.html");
+                        //alert("Record deleted successfully");
+
+                    },
+                    error: function (xhr, status, error) {
+                        $('#msg').html('<span style=\'color:red;\'>' + error + '</span>')
+                    }
+                });
+
+            }
+
+
+        </script>
+
+    </div>
+
+
+
+
+
+
+    <div id="edit">
+        <h2>Update User</h2>
+        <form id="update-form">
+            <table>
+
+                <tr>
+                    <td><input type="hidden" name="id" id="myupdateid" value="" required /></td>
+                </tr>
+                <tr>
+                    <td> Name:</td>
+                    <td><input type="text" name="name" id="myupdatename" value="" required/></td>
+                </tr>
+                <tr>
+                    <td> state:</td>
+                    <td><input type="text" name="state" id="myupdatestate" value="" required /></td>
+                </tr>
+                <tr>
+                    <td> country:</td>
+                    <td><input type="text" name="country" id="myupdatecountry" value="" required/></td>
+                </tr>
+            </table>
+            <input type="submit" value="update user" onclick="saveButton()" />
+        </form>
+
+        <div id="msg2"></div>
+
+
+
+
+        <script>
+
+
+            function myupdateFunction(id) {
+
+                editButton()
+                console.log(id);
+
+                fetch("http://localhost:8080/api123/AllCrud").then(
+                    res => {
+                        res.json().then(
+                            dataum => {
+                                console.log(dataum);
+
+                                if (dataum.length > 0) {
+
+                                    var t = "";
+                                    dataum.forEach((itemData) => {
+
+                                        if (itemData.id == id) {
+
+                                            document.getElementById("myupdateid").value = itemData.id;
+                                            document.getElementById("myupdatename").value = itemData.name;
+                                            document.getElementById("myupdatestate").value = itemData.state;
+                                            document.getElementById("myupdatecountry").value = itemData.country;
+                                        }
+
+                                    });
+                                }
+                            }
+                        )
+                    }
+                )
+
+            }
+
+
+            $("#update-form").submit(function (event) {
+
+
+                event.preventDefault();
+                var $form = $(this);
+
+                var url = 'http://localhost:8080/api123/AllCrud';
+                var id = $form.find('input[name="id"]').val();
+                var name = $form.find('input[name="name"]').val();
+                var state = $form.find('input[name="state"]').val();
+                var country = $form.find('input[name="country"]').val();
+                console.log("update");
+
+                $.ajax({
+
+                    type: 'PUT',
+                    url: url,
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: id, name: name, state: state, country: country }),
+                    success: function (data, status, xhr) {
+                        //$('#result2').html(data);
+                        sessionStorage.setItem("PressedButton", data);
+                        window.location.replace("http://localhost:8080/api123/index.html");
+                        //alert("Record updated sucessfully")
+                    },
+                    error: function (xhr, status, error) {
+                        $('#msg2').html('<span style=\'color:red;\'>' + error + '</span>')
+                    }
+                });
+            });
+
+        </script>
+    </div>
+
+
+
+</body>
+
+
+
+<!----below script for show the particular servlet in this html page--------->
+
+<script>
+
+    function checkthelastButton() {
+        var whichbutton = localStorage.getItem("selectedButton")
+
+        if (whichbutton == "save") {
+            saveButton()
+        }
+        else if (whichbutton == "view") {
+            viewButton()
+        }
+        else {
+            editButton()
+        }
+    }
+
+
+
+    function saveButton() {
+        document.getElementById("save").style.display = 'none'
+        document.getElementById("view").style.display = 'block'
+        document.getElementById("edit").style.display = 'none'
+        document.getElementById("start").style.display = 'block'
+        localStorage.setItem("selectedButton", "save");
+    }
+
+
+
+    function viewButton() {
+        document.getElementById("view").style.display = 'none'
+        document.getElementById("save").style.display = 'block'
+        document.getElementById("edit").style.display = 'none'
+        document.getElementById("start").style.display = 'none'
+        localStorage.setItem("selectedButton", "view");
+    }
+
+
+    function editButton() {
+        document.getElementById("view").style.display = 'none'
+        document.getElementById("save").style.display = 'none'
+        document.getElementById("edit").style.display = 'block'
+        document.getElementById("start").style.display = 'none'
+        localStorage.setItem("selectedButton", "edit");
+    }
+
+
+</script>
+
+
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-------------------------------
+   function updatePrice() {
+        $.ajax(
+            {
+                url: "http://localhost:8080/api/AllCrud/" + $("#id").val(),
+                data: { "name": $("#name").val(), "state": $("#state").val(), "country": $("#country").val() },
+                method: "PUT",
+                complete: showUpdateResult
+            }
+        );
+    }
+
+
+
+<head>
+    <title>TASK</title>
+</head>
+
+
+
+<body onload="checkthelastButton()">
+        
+
+   
+
+    <!------------Add User page <ADD USER PAGE>----------
+
+
+    <div id="save">
+
+        <h1>Add Employee : </h1>
+
+        <form action="AllCrud" method="post">
+            <table>
+                <tr>
+                    <td>Name:</td>
+                    <td><input type="text" name="name" /></td>
+                </tr>
+                <tr>
+                    <td>State:</td>
+                    <td><input type="text" name="state" /></td>
+                </tr>
+                <tr>
+                    <td>Country:</td>
+                    <td><input type="text" name="country" /></td>
+                </tr>
+
+                <input type="hidden" name="inserthiddenvalue" id="insert_hidden_value" value="true" />
+
+                <tr>
+                    <td colspan="2"><input type="submit" value="Save Employee" onclick="saveButton()" /></td>
+                </tr>
+            </table>
+        </form>
+
+        <br />
+
+
+        <a href="index.html" onclick="saveButton()"> View Employee </a>
+        <br />
+
+ </div>
+
+
+
+
+
+
+
+
+    <!-------------View User page   <VIEW USER>-----------------
+
+
+    <div id="view">
+
+        <a href="index.html" onclick="viewButton()"> Add Employee </a>
+
+
+        <br />
+
+
+        <h1>Employees List : </h1>
+        <div>
+            <table border="1" width="100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th> Name</th>
+                        <th>State</th>
+                        <th>Country</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+
+                    </tr>
+                </thead>
+                <tbody id="viewdata">
+
+                </tbody>
+            </table>
+        </div>
+ </div>
+ 
+
+        
+
+
+    <!-------------Edit User page <EDIT USER>-----------------
+
+
+    <div id="edit" style="display: none;">
+      
+       <!-------   <h1>Update your details : </h1>   -------
+
+
+      
+        <div class="container">
+            <table>
+                <tbody id="editdata">
+                
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+
+
+
+
+
+
+
+
+
+ <!----------view && edit script------------
+
+
+    <script>
+
+        fetch("http://localhost:8080/api/AllCrud").then(
+            res => {
+                res.json().then(
+                    data => {
+                        console.log(data);
+                        
+                        //below code for view servlet script   <VIEW USER>
+                        if (data.length > 0) {
+
+                            var temp = "";
+                            data.forEach((itemnewData) => {
+
+                                temp += "<tr>";
+                                temp += "<td>" + itemnewData.id + "</td>";
+                                temp += "<td>" + itemnewData.name + "</td>";
+                                temp += "<td>" + itemnewData.state + "</td>";
+                                temp += "<td>" + itemnewData.country + "</td>";
+                                temp += "<td>" + '<form action=  "index.html?id=' + itemnewData.id + '"  method="post" onsubmit = "editButton()" >' + '<input type="hidden" name="updatehiddenvalue" value="true"/>' + '<input type="submit" onclick = "editButton()" value="edit1"/>' + '</form>' + "</td>";
+                                temp += "<td>" + '<form action="AllCrud?id=' + itemnewData.id + '"method="post">' + '<input type="hidden" name="deletehiddenvalue" value="true"/>' + '<input type="submit" value="Delete1"/>' + '</form>' + "</td>";
+
+                            });
+                            document.getElementById('viewdata').innerHTML = temp;
+                        }
+                       //VIEW SERVLET ENDED
+
+
+                        //below code for UPDATE SERVLET <UPDATE USER>
+
+                            
+                        const urlParams = new URLSearchParams(window.location.search);
+                        console.log(urlParams.has('create')); // create page by hitting url
+                        console.log(urlParams.has('view'));  // view page by hitting url
+                        console.log(urlParams.has('id')); // update page
+                        console.log(urlParams.has('edit_id')); // update page by hitting url
+
+
+                        var create = (urlParams.has('create'));
+                        var view = (urlParams.has('view'));
+                        var id = (urlParams.has('id'));
+                        var edit = (urlParams.has('edit_id'));
+                        
+
+
+                            if(id)
+                            {
+                                for (const value of urlParams.values()) 
+                                {
+                                    var idd = value;
+                                    console.log(value);                          
+                                
+                                }
+
+                            }
+
+                            else if(edit)
+                            {
+                                for (const value of urlParams.values()) 
+                                {
+                                    var idd = value;
+                                    console.log(value);
+                                    editButton();
+                                
+                                }
+
+                            }
+
+
+
+                            if(create)
+                            {
+                                
+                                viewButton();
+
+                            }
+
+
+                            else if(view)
+                            {
+                                saveButton();
+
+                            }
+
+
+
+
+                            else if( id || edit )
+                            {
+
+                            
+                                var t = "";
+                                var flag = 0;
+
+                                data.forEach((itemData) => {
+
+                                    if( idd == itemData.id ){
+
+                                        
+                                        flag = 1 ;
+
+                                        t += "<h1>Update your details : </h1> ";
+                                        t += "<tr>";
+                                        t += "<td>"+ '<form  id="myForm" action= "AllCrud?id='+ itemData.id +'" method="post"   >'
+                                        t += '<input type="hidden" name="updatehiddenvalue" value="false"/>' ;
+                                        t += '<input type="hidden" name="updatedhiddenvalue" value="true"/>' ;                
+                                        t += 'Name:<input type="text" name="name" value="'+ itemData.name +'" />' ;
+                                        t += 'State:<input type="text" name="state" value="'+ itemData.state +'" />'  ;  
+                                        t += 'Country:<input type="text" name="country" value="'+ itemData.country +'"/>'   ;
+                                        t += '<input type="button"  onclick="myFunction()"  value="edit&save" />';
+                                        t += '</form>' + "</td>";
+                                    }
+                                });
+
+                                if(flag == 0)
+                                {
+                                    t += 'The given id is not exist' ;
+                                }
+                                document.getElementById('editdata').innerHTML = t;
+                            }
+                            //UPDATE SERVLET ENDED
+
+                    }
+                )
+            }
+        )
+
+
+    function myFunction()
+    {
+        document.getElementById("myForm").submit();
+        saveButton();
+    }
+  
+    </script>
+
+
+
+
+</body>
+
+
+
+
+
+
+
+
+<!----below script for show the particular servlet in this html page---------
+
+<script>
+
+    function checkthelastButton() 
+    {
+        var whichbutton = localStorage.getItem("selectedButton")
+
+        if (whichbutton == "save")
+        {
+            saveButton()
+        }
+        else if(whichbutton == "view")
+        {
+            viewButton()
+        }
+        else 
+        {
+            editButton()
+        }
+    }
+
+
+
+    function saveButton()
+    {
+        document.getElementById("save").style.display = 'none'
+        document.getElementById("view").style.display = 'block'
+        document.getElementById("edit").style.display = 'none'
+        localStorage.setItem("selectedButton", "save");
+    }
+
+
+
+    function viewButton() 
+   {        
+        document.getElementById("view").style.display = 'none'
+        document.getElementById("save").style.display = 'block'
+        document.getElementById("edit").style.display = 'none'
+        localStorage.setItem("selectedButton", "view");
+    }
+
+
+    function editButton() 
+    {
+        document.getElementById("view").style.display = 'none'
+        document.getElementById("save").style.display = 'none'
+        document.getElementById("edit").style.display = 'block'
+        localStorage.setItem("selectedButton", "edit");
+    }
+
+ 
+</script>
+
+
+
+
+-------------------->
